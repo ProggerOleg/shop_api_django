@@ -1,12 +1,12 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import *
 from .serializers import *
 
-...
 
 @api_view(['GET', 'POST'])
 def items_list(request):
@@ -53,14 +53,25 @@ def items_detail(request, pk):
     if request.method == 'GET':
         serializer = ItemsSerializer(Items,context={'request': request})
         return Response(serializer.data)
-
+    
     elif request.method == 'PUT':
-        serializer = ItemsSerializer(Items, data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        data = request.data
+        item = Items.objects.get(pk=data.get('pk'))
+        photo = request.FILES["photo"]
+        item.title=data.get('title')
+        item.content= data.get('content')
+        item.price= data.get('price')
+        item.stock = data.get('stock')
+        item.available = data.get('available')
+        item.photo= photo
+        item.save()
+        response = {"result":'Item Updated Sucessfully'}
+        return Response(response)
+        # except:
+        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    

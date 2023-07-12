@@ -3,13 +3,16 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 # Create your models here.
 
+def upload_to(instance, filename):
+        return 'images/{filename}'.format(filename=filename)
+
 class Items(models.Model):
     title = models.CharField(max_length=255, verbose_name='Заголовок')
     slug = models.SlugField(max_length=255, unique=True, db_index=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена')
     stock = models.PositiveIntegerField()
     content = models.TextField(blank=True, verbose_name='Текст статьи')
-    photo = models.ImageField(upload_to="photos/%Y/%m/%d/", verbose_name='Фото')
+    photo = models.ImageField(upload_to=upload_to, verbose_name='Фото')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата публикации')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
     available = models.BooleanField(default=True, verbose_name='Доступен ли товар')
@@ -21,9 +24,10 @@ class Items(models.Model):
 
     def __str__(self):
         return self.title
+    
 
     def get_absolute_url(self):
-        return reverse('post', kwargs={'post_slug': self.slug})
+        return reverse('title', kwargs={'title_slug': self.slug})
 
     class Meta:
         verbose_name = 'Список товаров'
